@@ -33,7 +33,7 @@ export const useAuthStore = defineStore(
       user.value = testUser.user
     }
 
-    function Logout() {
+    function logout() {
       jwtToken.value = null
       user.value = null
     }
