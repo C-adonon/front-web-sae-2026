@@ -2,7 +2,12 @@ import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
 
 const apiClient = axios.create({
-  baseUrl: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    'Access-Control-Allow-Origin': '*',
+  },
   timeout: 10000,
 })
 
@@ -17,9 +22,12 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response.status === 401 || error.response.status === 403) {
-      const authStore = useAuthStore()
-      authStore.logout()
+    console.log('API error:', error)
+    if (error.response) {
+      if (error.response.status === 401 || error.response.status === 403) {
+        const authStore = useAuthStore()
+        authStore.logout()
+      }
     }
     return Promise.reject(error)
   },
