@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
+import { authApi } from '@/api/auth.api'
 
 export const useAuthStore = defineStore(
   'auth',
@@ -16,29 +17,42 @@ export const useAuthStore = defineStore(
     })
     const role = computed(() => user.value?.role || null)
 
-    function login(credentials) {
-      const testUser = {
-        jwtToken: 'test',
-        user: {
-          id: 1,
-          nom: 'Doe',
-          prenom: 'John',
-          email: 'john.doe@gmail.com',
-          role: 'ETUDIANT',
-          identifiant: '123456',
-        },
-      }
+    async function login(credentials) {
+      // const testUser = {
+      //   jwtToken: '',
+      //   user: {
+      //     id: 1,
+      //     nom: 'Doe',
+      //     prenom: 'John',
+      //     email: 'john.doe@gmail.com',
+      //     role: 'ETUDIANT',
+      //     identifiant: '123456',
+      //   },
+      // }
 
-      jwtToken.value = testUser.jwtToken
-      user.value = testUser.user
+      try {
+        const resToken = await authApi.login(credentials)
+        jwtToken.value = resToken.token
+
+        const resUtilisateur = await authApi.getUtilisateur(credentials.identifiant)
+        user.value = resUtilisateur.user
+
+        isAuthenticated.value = true
+        role.value = user.value.role
+      } catch (error) {
+        console.error('Login failed:', error)
+        throw error
+      }
     }
 
     function logout() {
       jwtToken.value = null
       user.value = null
+      isAuthenticated.value = false
+      role.value = null
     }
 
-    return { jwtToken, user, isAuthenticated, role, fullName }
+    return { jwtToken, user, isAuthenticated, role, fullName, login, logout }
   },
   {
     persist: {
